@@ -1,0 +1,18 @@
+{
+    "name": "NewfangledEditor.Inspector",
+    "rootNamespace": "",
+    "references": [
+        "GUID:36db4fb938782124ea340ab7d84bb02d"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
