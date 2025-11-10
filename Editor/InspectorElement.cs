@@ -134,7 +134,7 @@ namespace ExtendedInspector.Editor
         }
     }
 
-    public abstract class NewfangledElement
+    public abstract class InspectorElement
     {
         protected PropertyOrderInfo m_OrderInfo;
         protected System.Func<object> m_Owner;
@@ -145,7 +145,7 @@ namespace ExtendedInspector.Editor
         public PropertyOrderInfo OrderInfo => m_OrderInfo;
         public VisualElement VisualElement => m_InputField;
 
-        public NewfangledElement( int order, int metadataToken, System.Func<object> owner, long tickDelay, bool forceDisabled )
+        public InspectorElement( int order, int metadataToken, System.Func<object> owner, long tickDelay, bool forceDisabled )
         {
             m_OrderInfo = new PropertyOrderInfo( metadataToken, order );
             m_TickDelay = tickDelay;
@@ -189,9 +189,9 @@ namespace ExtendedInspector.Editor
         protected abstract void GetVisibilityStatus( out bool enabled, out bool hidden );
     }
 
-    public class NewfangledFieldGroup : NewfangledElement
+    public class NewfangledFieldGroup : InspectorElement
     {
-        protected SortedList<PropertyOrderInfo, NewfangledElement> m_Elements = new( new PropertyOrderComparer() );
+        protected SortedList<PropertyOrderInfo, InspectorElement> m_Elements = new( new PropertyOrderComparer() );
         protected Foldout m_Foldout;
         protected VisualElement m_Container;
         protected int m_Id;
@@ -207,7 +207,7 @@ namespace ExtendedInspector.Editor
             }
         }
 
-        public void AddElement( NewfangledElement newfangledElement )
+        public void AddElement( InspectorElement newfangledElement )
         {
             foreach ( var element in m_Elements )
             {
@@ -222,7 +222,7 @@ namespace ExtendedInspector.Editor
             }
         }
 
-        public void RemoveElement( NewfangledElement newfangledElement )
+        public void RemoveElement( InspectorElement newfangledElement )
         {
             m_Elements.Remove( newfangledElement.OrderInfo );
             m_Container.Remove( newfangledElement.VisualElement );
@@ -275,7 +275,7 @@ namespace ExtendedInspector.Editor
         }
     }
 
-    public class NewfangledMemberField : NewfangledElement
+    public class NewfangledMemberField : InspectorElement
     {
         protected MemberInfo m_MemberInfo;
         protected System.Type m_MemberType;

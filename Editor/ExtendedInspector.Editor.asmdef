@@ -1,5 +1,5 @@
 {
-    "name": "NewfangledEditor.Inspector",
+    "name": "ExtendedInspector.Editor",
     "rootNamespace": "",
     "references": [
         "GUID:36db4fb938782124ea340ab7d84bb02d"

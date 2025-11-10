@@ -18,7 +18,7 @@ namespace ExtendedInspector.Editor
         public const BindingFlags BINDING_FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy;
 
         private VisualElement m_Container;
-        private SortedList<PropertyOrderInfo, NewfangledElement> m_Elements = new( new PropertyOrderComparer() );
+        private SortedList<PropertyOrderInfo, InspectorElement> m_Elements = new( new PropertyOrderComparer() );
         private Dictionary<int, NewfangledFieldGroup> m_FieldGroups = new();
 
         private List<Inspector> m_ChildInspectors;

@@ -169,7 +169,7 @@ namespace ExtendedInspector.Editor
             m_CachedContextWidthElement = null;
             for ( VisualElement visualElement = base.parent; visualElement != null; visualElement = visualElement.parent )
             {
-                if ( visualElement.ClassListContains( InspectorElement.ussClassName ) )
+                if ( visualElement.ClassListContains( UnityEditor.UIElements.InspectorElement.ussClassName ) )
                 {
                     m_CachedInspectorElement = visualElement;
                 }
