@@ -1,3 +1,3 @@
-# Newfangled Inspector
+# Extended Inspector
 
 Improvements to the inspector and more inspector attributes.

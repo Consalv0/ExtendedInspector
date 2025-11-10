@@ -1,8 +1,8 @@
 {
-    "name": "com.newfangled.inspector",
+    "name": "com.consalvo.extendedinspector",
     "version": "0.1.0",
-    "displayName": "Newfangled Inspector",
-    "description": "Improvements to the inspector and more inspector attributes.",
+    "displayName": "Extended Inspector",
+    "description": "Tools to improve inspector.",
     "unity": "6000.3",
     "keywords": [
         "inspector",
@@ -10,7 +10,7 @@
     ],
     "author": {
         "name": "Gonzalo Ceciliano",
-        "email": "gonzalo.ceciliano@newfangled.games"
+        "email": "gonzaloceciliano@gmail.com"
     }
 }
 
