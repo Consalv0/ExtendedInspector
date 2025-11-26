@@ -8,9 +8,13 @@ namespace ExtendedInspector.Editor
     [CanEditMultipleObjects, CustomEditor( typeof( UnityEngine.Object ), true )]
     public class Editor : UnityEditor.Editor
     {
-        protected Inspector m_Inspector;
+        internal Inspector m_Inspector;
 
         protected virtual void OnEnable( )
+        {
+        }
+
+        public virtual void OnPopulateInspector( Inspector inspector )
         {
         }
 
@@ -19,7 +23,7 @@ namespace ExtendedInspector.Editor
             if ( EditorPrefs.GetBool( "ExtendedInspector.Editor.enabled", true ) )
             {
                 m_Inspector = new( this.targets, this.serializedObject );
-                return m_Inspector.CreateInspectorGUI();
+                return m_Inspector.CreateInspectorGUI( OnPopulateInspector );
             }
             else
             {

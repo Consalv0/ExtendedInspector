@@ -36,6 +36,7 @@ namespace ExtendedInspector.Editor
         protected long m_TickDelay;
 
         public long TickDelay => m_TickDelay;
+        public VisualElement Container => m_Container;
 
         protected object GetTarget( ) => Target;
 
@@ -101,13 +102,14 @@ namespace ExtendedInspector.Editor
             m_Serialized = m_SerializedProperty != null;
         }
 
-        public virtual VisualElement CreateInspectorGUI( )
+        public virtual VisualElement CreateInspectorGUI( System.Action<Inspector> customElementsAction = null )
         {
             m_Container = new VisualElement();
             m_Elements.Clear();
 
             if ( m_Serialized ) GetDefaultInspectorElements();
             GetNewfangledElements();
+            customElementsAction?.Invoke( this );
 
             foreach ( var element in m_Elements )
             {
@@ -152,6 +154,12 @@ namespace ExtendedInspector.Editor
                 NewfangledMemberField newfangledField = new ( memberInfo, order, metadataToken, m_ValueType, inputField, GetTarget, m_TickDelay, forceDisabled );
                 m_Elements.Add( newfangledField.OrderInfo, newfangledField );
             }
+        }
+
+        public void AddElement( VisualElement visualElement, int order = 0, int metadataToken = 0, bool forceDisabled = false )
+        {
+            NewfangledMemberField newfangledMemberField = new( null, order, metadataToken, null, visualElement, null, 0, forceDisabled );
+            m_Elements.Add( newfangledMemberField.OrderInfo, newfangledMemberField );
         }
 
         protected virtual void GetDefaultInspectorElements( )
