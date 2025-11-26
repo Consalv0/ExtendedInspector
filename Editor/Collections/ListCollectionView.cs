@@ -254,9 +254,57 @@ namespace ExtendedInspector.Editor
                 element.style.paddingLeft = 12;
                 element.style.paddingRight = 10;
                 element.RegisterCallback<PointerDownEvent>( evt => EvalAddRemoveFocusedElement(), TrickleDown.TrickleDown );
+                if ( m_Property == null ) element.AddManipulator( new ContextualMenuManipulator( null ) );
+                element.RegisterCallback<ContextualMenuPopulateEvent>( ( evt ) =>
+                {
+                    evt.menu.AppendAction( "Move Element Up",
+                        ( menuAction ) => { MoveElementUp( (int)menuAction.userData ); },
+                        static ( DropdownMenuAction menuAction ) =>
+                        {
+                            return ((int)menuAction.userData) == 0 ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
+                        },
+                        index );
+                    evt.menu.AppendAction( "Move Element Down",
+                        ( menuAction ) => { MoveElementDown( (((int, int))menuAction.userData).Item1 ); },
+                        static ( DropdownMenuAction menuAction ) =>
+                        {
+                            return (((int, int))menuAction.userData).Item1 + 1 >= (((int, int))menuAction.userData).Item2 ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
+                        },
+                        (index, m_Size) );
+                } );
 
                 m_Elements.Add( element );
                 m_ScrollView.Add( element );
+            }
+        }
+
+        protected void MoveElementDown( int index )
+        {
+            if ( m_Property != null )
+            {
+                m_Property.MoveArrayElement( index, index + 1 );
+                m_Property.serializedObject.ApplyModifiedProperties();
+            }
+            else
+            {
+                object temp = m_Value[ index ];
+                m_Value[index] = m_Value[ index + 1 ];
+                m_Value[index + 1] = temp;
+            }
+        }
+
+        protected void MoveElementUp( int index )
+        {
+            if ( m_Property != null )
+            {
+                m_Property.MoveArrayElement( index, index - 1 );
+                m_Property.serializedObject.ApplyModifiedProperties();
+            }
+            else
+            {
+                object temp = m_Value[ index ];
+                m_Value[ index ] = m_Value[ index - 1 ];
+                m_Value[ index - 1 ] = temp;
             }
         }
 
