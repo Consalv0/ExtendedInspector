@@ -162,21 +162,12 @@ namespace ExtendedInspector.Editor
             }
             else if ( m_InputField is Foldout )
             {
-                if ( enabled )
-                {
-                    m_InputField.contentContainer.RemoveFromClassList( PropertyField.disabledUssClassName );
-                    m_InputField.Q<Label>().RemoveFromClassList( PropertyField.disabledUssClassName );
-                }
-                else
-                {
-                    m_InputField.contentContainer.AddToClassList( PropertyField.disabledUssClassName );
-                    m_InputField.Q<Label>().AddToClassList( PropertyField.disabledUssClassName );
-                }
+                m_InputField.contentContainer.SetEnabled( enabled );
+                m_InputField.Q<Toggle>().SetEnabled( enabled );
             }
             else if ( m_InputField is CollectionView collectionView )
             {
-                if ( enabled ) m_InputField.RemoveFromClassList( PropertyField.disabledUssClassName );
-                else m_InputField.AddToClassList( PropertyField.disabledUssClassName );
+                m_InputField.Q<Toggle>().SetEnabled( enabled );
                 collectionView.SetEditable( enabled );
             }
             else
