@@ -29,7 +29,7 @@ namespace ExtendedInspector.Editor
         {
             if ( value == false || m_ReadOnly )
             {
-                Inspector.DisablePickingElementsInHierarchy( m_ScrollView.contentContainer );
+                m_ScrollView.contentContainer.SetEnabled( false );
             }
             else
             {

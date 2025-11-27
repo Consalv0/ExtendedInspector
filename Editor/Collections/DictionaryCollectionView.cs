@@ -59,7 +59,7 @@ namespace ExtendedInspector.Editor
         {
             if ( value == false || m_ReadOnly )
             {
-                Inspector.DisablePickingElementsInHierarchy( m_ScrollView.contentContainer );
+                m_ScrollView.contentContainer.SetEnabled( false );
                 m_OptionsButton.style.display = DisplayStyle.None;
                 m_RemoveButton.style.display = DisplayStyle.None;
             }

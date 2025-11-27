@@ -752,30 +752,6 @@ namespace ExtendedInspector.Editor
             }
         }
 
-        public static void DisablePickingElementsInHierarchy( VisualElement visualElement )
-        {
-            Stack<VisualElement> stack = new();
-            stack.Push( visualElement );
-
-            while ( stack.Count > 0 )
-            {
-                VisualElement currentElement = stack.Pop();
-                for ( int i = 0; i < currentElement.hierarchy.childCount; i++ )
-                {
-                    VisualElement child = currentElement.hierarchy.ElementAt(i);
-                    if ( child is Foldout foldout )
-                    {
-                        stack.Push( foldout.contentContainer );
-                    }
-                    else
-                    {
-                        stack.Push( child );
-                        child.pickingMode = PickingMode.Ignore;
-                    }
-                }
-            }
-        }
-
         public static bool AreNonSerializedMemberValuesDifferent( System.Func<object>[] gets )
         {
             if ( gets.Length <= 1 )
