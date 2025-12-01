@@ -130,6 +130,12 @@ namespace ExtendedInspector.Editor
         {
             object a = m_GetterA.GetObject( target );
             object b = m_GetterB.GetObject( target );
+
+            if ( a == null && b == null )
+                return true;
+            else if ( a == null )
+                return false;
+            
             return a.Equals( b );
         }
     }
@@ -357,4 +363,5 @@ namespace ExtendedInspector.Editor
             }
         }
     }
+
 }
