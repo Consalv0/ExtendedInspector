@@ -1268,28 +1268,26 @@ namespace ExtendedInspector.Editor
         /// <returns>The member info of the specified member type</returns>
         private static MemberInfo FindMember( string memberName, System.Type targetType, BindingFlags bindingFlags, MemberTypes memberType )
         {
-            switch ( memberType )
+            if ( string.IsNullOrEmpty( memberName ) || targetType == null )
+                return null;
+
+            // Always ensure we only search members declared on this type at each step
+            bindingFlags |= BindingFlags.DeclaredOnly;
+
+            while ( targetType != null )
             {
-                case MemberTypes.Field:
+                MemberInfo result = memberType switch
                 {
-                    if ( targetType != null )
-                        return targetType.GetField( memberName, bindingFlags );
-                }
-                break;
+                    MemberTypes.Field    => targetType.GetField( memberName, bindingFlags ),
+                    MemberTypes.Property => targetType.GetProperty( memberName, bindingFlags ),
+                    MemberTypes.Method   => targetType.GetMethod( memberName, bindingFlags ),
+                    _ => null
+                };
 
-                case MemberTypes.Property:
-                {
-                    if ( targetType != null )
-                        return targetType.GetProperty( memberName, bindingFlags );
-                }
-                break;
+                if ( result != null )
+                    return result;
 
-                case MemberTypes.Method:
-                {
-                    if ( targetType != null )
-                        return targetType.GetMethod( memberName, bindingFlags );
-                }
-                break;
+                targetType = targetType.BaseType;
             }
 
             return null;
