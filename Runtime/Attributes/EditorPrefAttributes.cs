@@ -5,7 +5,7 @@ namespace ExtendedInspector
 {
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.GenericParameter | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class EditorPrefVisibilityAttribute : PropertyAttribute
+    public class EditorPrefVisibilityAttribute : ExtendedPropertyAttribute
     {
         public readonly EditorVisibility visibility;
         public readonly string key;

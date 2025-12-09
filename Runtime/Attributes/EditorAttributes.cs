@@ -5,7 +5,7 @@ namespace ExtendedInspector
 {
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.GenericParameter, AllowMultiple = false, Inherited = false )]
     [Conditional( "UNITY_EDITOR" )]
-    public class ButtonAttribute : PropertyAttribute
+    public class ButtonAttribute : ExtendedPropertyAttribute
     {
         public readonly string label;
         public readonly string iconName;
@@ -27,7 +27,7 @@ namespace ExtendedInspector
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class ShowInInspectorAttribute : PropertyAttribute
+    public class ShowInInspectorAttribute : ExtendedPropertyAttribute
     {
         public readonly long tickDelay;
 
@@ -39,7 +39,7 @@ namespace ExtendedInspector
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class TrackSerializedPropertyAttribute : PropertyAttribute
+    public class TrackSerializedPropertyAttribute : ExtendedPropertyAttribute
     {
         public string propertyPath;
 
@@ -51,42 +51,42 @@ namespace ExtendedInspector
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class ReadOnlyAttribute : PropertyAttribute
+    public class ReadOnlyAttribute : ExtendedPropertyAttribute
     {
         public ReadOnlyAttribute( ) : base() { }
     }
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class DisableInPlayModeAttribute : PropertyAttribute
+    public class DisableInPlayModeAttribute : ExtendedPropertyAttribute
     {
         public DisableInPlayModeAttribute( ) : base() { }
     }
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class DisableInEditorModeAttribute : PropertyAttribute
+    public class DisableInEditorModeAttribute : ExtendedPropertyAttribute
     {
         public DisableInEditorModeAttribute( ) : base() { }
     }
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class HideInEditorModeAttribute : PropertyAttribute
+    public class HideInEditorModeAttribute : ExtendedPropertyAttribute
     {
         public HideInEditorModeAttribute( ) : base() { }
     }
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class HideInPlayModeAttribute : PropertyAttribute
+    public class HideInPlayModeAttribute : ExtendedPropertyAttribute
     {
         public HideInPlayModeAttribute( ) : base() { }
     }
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class InlineEditorAttribute : PropertyAttribute
+    public class InlineEditorAttribute : ExtendedPropertyAttribute
     {
         public readonly bool expanded = false;
 
@@ -98,14 +98,14 @@ namespace ExtendedInspector
 
     [AttributeUsage( AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class InlinePropertyAttribute : PropertyAttribute
+    public class InlinePropertyAttribute : ExtendedPropertyAttribute
     {
         public InlinePropertyAttribute( ) : base() { }
     }
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class FoldoutGroupAttribute : PropertyAttribute
+    public class FoldoutGroupAttribute : ExtendedPropertyAttribute
     {
         public readonly bool expanded = false;
         public readonly int id;

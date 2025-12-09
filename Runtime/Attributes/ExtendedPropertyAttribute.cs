@@ -8,11 +8,11 @@ namespace ExtendedInspector
     /// <summary>Customizes how a field is rendered in the inspector.</summary>
     [Conditional( "UNITY_EDITOR" )]
     [AttributeUsage( AttributeTargets.All, Inherited = true, AllowMultiple = false )]
-    public abstract class PropertyAttribute : UnityEngine.PropertyAttribute
+    public abstract class ExtendedPropertyAttribute : PropertyAttribute
     {
         public readonly int lineNumer;
         
-        public PropertyAttribute( [CallerLineNumber] int lineNumer = 0 )
+        public ExtendedPropertyAttribute( [CallerLineNumber] int lineNumer = 0 )
         {
             this.lineNumer = lineNumer;
         }

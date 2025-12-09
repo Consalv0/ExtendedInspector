@@ -3,7 +3,7 @@ using UnityEditor;
 
 namespace ExtendedInspector.Editor
 {
-    public abstract class NewfangledPropertyDrawer : PropertyDrawer
+    public abstract class ExtendedPropertyDrawer : PropertyDrawer
     {
         protected readonly System.Func<object> m_Get;
         protected readonly System.Action<object> m_Set;
@@ -15,7 +15,7 @@ namespace ExtendedInspector.Editor
 
         private static FieldInfo s_PreferredLabelField = null;
 
-        public NewfangledPropertyDrawer( MemberInfo memberInfo, string label, System.Func<object> get, System.Action<object> set, SerializedProperty property )
+        public ExtendedPropertyDrawer( MemberInfo memberInfo, string label, System.Func<object> get, System.Action<object> set, SerializedProperty property )
         {
             m_Get = get;
             m_Set = set;
@@ -28,7 +28,7 @@ namespace ExtendedInspector.Editor
             s_PreferredLabelField.SetValue( this, label );
         }
 
-        public NewfangledPropertyDrawer( )
+        public ExtendedPropertyDrawer( )
         {
         }
 

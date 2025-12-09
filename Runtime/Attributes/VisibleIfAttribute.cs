@@ -13,7 +13,7 @@ namespace ExtendedInspector
 
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
     [Conditional( "UNITY_EDITOR" )]
-    public class VisibleIfAttribute : PropertyAttribute
+    public class VisibleIfAttribute : ExtendedPropertyAttribute
     {
         public readonly string memberInfoPathA;
         public readonly string memberInfoPathB;

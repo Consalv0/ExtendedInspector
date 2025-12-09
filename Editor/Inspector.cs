@@ -19,7 +19,7 @@ namespace ExtendedInspector.Editor
 
         private VisualElement m_Container;
         private SortedList<PropertyOrderInfo, InspectorElement> m_Elements = new( new PropertyOrderComparer() );
-        private Dictionary<int, NewfangledFieldGroup> m_FieldGroups = new();
+        private Dictionary<int, FieldGroup> m_FieldGroups = new();
 
         private List<Inspector> m_ChildInspectors;
 
@@ -108,7 +108,7 @@ namespace ExtendedInspector.Editor
             m_Elements.Clear();
 
             if ( m_Serialized ) GetDefaultInspectorElements();
-            GetNewfangledElements();
+            GetExtendedElements();
             customElementsAction?.Invoke( this );
 
             foreach ( var element in m_Elements )
@@ -135,31 +135,31 @@ namespace ExtendedInspector.Editor
         {
             if ( memberInfo != null && memberInfo.GetCustomAttribute<FoldoutGroupAttribute>() is FoldoutGroupAttribute fouldoutGroup )
             {
-                NewfangledFieldGroup newfangledGroup;
-                if ( m_FieldGroups.TryGetValue( fouldoutGroup.id, out newfangledGroup ) == false )
+                FieldGroup fieldGroup;
+                if ( m_FieldGroups.TryGetValue( fouldoutGroup.id, out fieldGroup ) == false )
                 {
-                    newfangledGroup = new ( fouldoutGroup.id, fouldoutGroup.label, order, metadataToken, fouldoutGroup.expanded, GetTarget, m_TickDelay, forceDisabled );
-                    m_FieldGroups.Add( fouldoutGroup.id, newfangledGroup );
-                    m_Elements.Add( newfangledGroup.OrderInfo, newfangledGroup );
+                    fieldGroup = new ( fouldoutGroup.id, fouldoutGroup.label, order, metadataToken, fouldoutGroup.expanded, GetTarget, m_TickDelay, forceDisabled );
+                    m_FieldGroups.Add( fouldoutGroup.id, fieldGroup );
+                    m_Elements.Add( fieldGroup.OrderInfo, fieldGroup );
                 }
                 else
                 {
-                    if ( fouldoutGroup.label.GetHashCode() != fouldoutGroup.id ) newfangledGroup.Name = fouldoutGroup.label;
+                    if ( fouldoutGroup.label.GetHashCode() != fouldoutGroup.id ) fieldGroup.Name = fouldoutGroup.label;
                 }
-                NewfangledMemberField newfangledField = new ( memberInfo, order, metadataToken, m_ValueType, inputField, GetTarget, m_TickDelay, forceDisabled );
-                newfangledGroup.AddElement( newfangledField );
+                MemberField memberField = new ( memberInfo, order, metadataToken, m_ValueType, inputField, GetTarget, m_TickDelay, forceDisabled );
+                fieldGroup.AddElement( memberField );
             }
             else
             {
-                NewfangledMemberField newfangledField = new ( memberInfo, order, metadataToken, m_ValueType, inputField, GetTarget, m_TickDelay, forceDisabled );
-                m_Elements.Add( newfangledField.OrderInfo, newfangledField );
+                MemberField memberField = new ( memberInfo, order, metadataToken, m_ValueType, inputField, GetTarget, m_TickDelay, forceDisabled );
+                m_Elements.Add( memberField.OrderInfo, memberField );
             }
         }
 
         public void AddElement( VisualElement visualElement, int order = 0, int metadataToken = 0, bool forceDisabled = false )
         {
-            NewfangledMemberField newfangledMemberField = new( null, order, metadataToken, null, visualElement, null, 0, forceDisabled );
-            m_Elements.Add( newfangledMemberField.OrderInfo, newfangledMemberField );
+            MemberField memberField = new( null, order, metadataToken, null, visualElement, null, 0, forceDisabled );
+            m_Elements.Add( memberField.OrderInfo, memberField );
         }
 
         protected virtual void GetDefaultInspectorElements( )
@@ -195,12 +195,12 @@ namespace ExtendedInspector.Editor
                     {
                         if ( m_ChildInspectors == null ) m_ChildInspectors = new();
 
-                        Inspector newfangledInspector = new ( fieldInfo.FieldType, property.Copy(), this );
-                        m_ChildInspectors.Add( newfangledInspector );
+                        Inspector inspector = new ( fieldInfo.FieldType, property.Copy(), this );
+                        m_ChildInspectors.Add( inspector );
 
                         if ( fieldInfo.GetCustomAttribute<InlinePropertyAttribute>() is InlinePropertyAttribute inlineProperty )
                         {
-                            VisualElement visualElement = newfangledInspector.CreateInspectorGUI();
+                            VisualElement visualElement = inspector.CreateInspectorGUI();
                             AddDecorators( fieldInfo, ref visualElement );
                             AddElement( fieldInfo, order, visualElement, m_TickDelay );
                         }
@@ -215,7 +215,7 @@ namespace ExtendedInspector.Editor
                             container.style.marginLeft = -7;
                             container.style.borderLeftWidth = 1;
                             container.style.borderLeftColor = Color.gray3;
-                            VisualElement visualElement = newfangledInspector.CreateInspectorGUI();
+                            VisualElement visualElement = inspector.CreateInspectorGUI();
                             AddDecorators( fieldInfo, ref visualElement );
                             container.Add( visualElement );
                             AddElement( fieldInfo, order, serializedObjectFoldout, m_TickDelay );
@@ -289,14 +289,14 @@ namespace ExtendedInspector.Editor
         /// Draws all the members marked with the ShowInInspector attribute
         /// </summary>
         /// <returns>A visual element containing all non serialized member fields</returns>
-        protected virtual void GetNewfangledElements( )
+        protected virtual void GetExtendedElements( )
         {
             if ( Target == null )
                 return;
 
             IEnumerable<FieldInfo> nonSerializedFields = m_ValueType.GetFields(BINDING_FLAGS).Where( (field) => 
                 (m_Serialized == false && (field.IsPublic || field.IsNotSerialized == false) && field.IsStatic == false && field.IsLiteral == false )
-                || field.GetCustomAttributes<PropertyAttribute>().Any() );
+                || field.GetCustomAttributes<ExtendedPropertyAttribute>().Any() );
 
             foreach ( var nonSerializedField in nonSerializedFields )
             {
@@ -346,7 +346,7 @@ namespace ExtendedInspector.Editor
                 }
             }
 
-            IEnumerable<System.Reflection.PropertyInfo> nonSerializedProperties = m_ValueType.GetProperties(BINDING_FLAGS).Where((field) => field.GetCustomAttributes<PropertyAttribute>().Any() );
+            IEnumerable<System.Reflection.PropertyInfo> nonSerializedProperties = m_ValueType.GetProperties(BINDING_FLAGS).Where((field) => field.GetCustomAttributes<ExtendedPropertyAttribute>().Any() );
 
             foreach ( var nonSerializedProperty in nonSerializedProperties )
             {
@@ -425,7 +425,7 @@ namespace ExtendedInspector.Editor
                 }
             }
 
-            IEnumerable<MethodInfo> nonSerializedMethods = m_ValueType.GetMethods(BINDING_FLAGS).Where((field) => field.GetCustomAttributes<PropertyAttribute>().Any() );
+            IEnumerable<MethodInfo> nonSerializedMethods = m_ValueType.GetMethods(BINDING_FLAGS).Where((field) => field.GetCustomAttributes<ExtendedPropertyAttribute>().Any() );
 
             foreach ( var nonSerializedMethod in nonSerializedMethods )
             {
@@ -503,9 +503,9 @@ namespace ExtendedInspector.Editor
                 return 0;
 
             int order = 0;
-            IEnumerable<PropertyAttribute> propertyAttributes = memberInfo.GetCustomAttributes<PropertyAttribute>();
+            IEnumerable<ExtendedPropertyAttribute> propertyAttributes = memberInfo.GetCustomAttributes<ExtendedPropertyAttribute>();
 
-            foreach ( PropertyAttribute propertyAttribute in propertyAttributes )
+            foreach ( ExtendedPropertyAttribute propertyAttribute in propertyAttributes )
             {
                 if ( propertyAttributes is FoldoutGroupAttribute )
                     continue;
@@ -523,7 +523,7 @@ namespace ExtendedInspector.Editor
             }
         }
 
-        private static void SetOrder( ref int order, PropertyAttribute propertyAttribute )
+        private static void SetOrder( ref int order, ExtendedPropertyAttribute propertyAttribute )
         {
             if ( order == 0 )
             {
@@ -679,10 +679,10 @@ namespace ExtendedInspector.Editor
                 {
                     System.Type propertyDrawerType = GetPropertyDrawer( memberType );
 
-                    if ( propertyDrawerType.IsSubclassOf( typeof( NewfangledPropertyDrawer ) ) )
+                    if ( propertyDrawerType.IsSubclassOf( typeof( ExtendedPropertyDrawer ) ) )
                     {
                         object propertyDrawer = System.Activator.CreateInstance( propertyDrawerType, new object[] { memberInfo, memberInfo.Name, get, set, serializedProperty } );
-                        if ( propertyDrawer is NewfangledPropertyDrawer drawer )
+                        if ( propertyDrawer is ExtendedPropertyDrawer drawer )
                         {
                             VisualElement propertyField = new();
                             propertyField.AddToClassList( PropertyField.ussClassName );
@@ -1170,12 +1170,12 @@ namespace ExtendedInspector.Editor
             {
                 if ( m_ChildInspectors == null ) m_ChildInspectors = new();
 
-                Inspector newfangledInspector = new ( fieldType, get, set, serializedProperty, this, tickDelay );
-                m_ChildInspectors.Add( newfangledInspector );
+                Inspector inspector = new ( fieldType, get, set, serializedProperty, this, tickDelay );
+                m_ChildInspectors.Add( inspector );
 
                 if ( memberInfo.GetCustomAttribute<InlinePropertyAttribute>() is InlinePropertyAttribute inlineProperty )
                 {
-                    VisualElement visualElement = newfangledInspector.CreateInspectorGUI();
+                    VisualElement visualElement = inspector.CreateInspectorGUI();
                     AddDecorators( memberInfo, ref visualElement );
                     return visualElement;
                 }
@@ -1190,7 +1190,7 @@ namespace ExtendedInspector.Editor
                     container.style.marginLeft = -7;
                     container.style.borderLeftWidth = 1;
                     container.style.borderLeftColor = Color.gray3;
-                    VisualElement visualElement = newfangledInspector.CreateInspectorGUI();
+                    VisualElement visualElement = inspector.CreateInspectorGUI();
                     AddDecorators( memberInfo, ref visualElement );
                     container.Add( visualElement );
                     if ( serializedProperty != null ) serializedObjectFoldout.bindingPath = serializedProperty.propertyPath;

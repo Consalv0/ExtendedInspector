@@ -142,8 +142,8 @@ namespace ExtendedInspector.Editor
             return property.serializedObject.FindProperty( newPath );
         }
 
-        /// <summary> Returns an array of any <see cref="NewfangledAttribute"/> found in the property. Otherwise returns null. </summary>
-        public static PropertyAttribute[] GetCustomAttributes( this SerializedProperty property )
+        /// <summary> Returns an array of any <see cref="ExtendedPropertyAttribute"/> found in the property. Otherwise returns null. </summary>
+        public static ExtendedPropertyAttribute[] GetCustomAttributes( this SerializedProperty property )
         {
             // Arrays actually have a sibling "size". Their parent, is the actual property I will need to search in GetFieldNested.
             if ( property.name == "Array" )
@@ -153,7 +153,7 @@ namespace ExtendedInspector.Editor
 
             if ( fieldInfo != null )
             {
-                PropertyAttribute[] attributes = (PropertyAttribute[])fieldInfo.GetCustomAttributes(typeof(PropertyAttribute), true);
+                ExtendedPropertyAttribute[] attributes = (ExtendedPropertyAttribute[])fieldInfo.GetCustomAttributes(typeof(ExtendedPropertyAttribute), true);
                 return attributes;
             }
 
@@ -199,8 +199,8 @@ namespace ExtendedInspector.Editor
                 }
                 else
                 {
-                    PropertyAttribute[] attributes = property.GetCustomAttributes();
-                    PropertyAttribute sortAttribute = attributes?.FirstOrDefault(attr => attr is PropertyAttribute);
+                    ExtendedPropertyAttribute[] attributes = property.GetCustomAttributes();
+                    ExtendedPropertyAttribute sortAttribute = attributes?.FirstOrDefault(attr => attr is ExtendedPropertyAttribute);
                     sortOrderCache[ property ] = sortAttribute?.order ?? 0;
                     needsSorting = true;
                 }

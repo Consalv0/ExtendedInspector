@@ -45,7 +45,7 @@ namespace ExtendedInspector
 {
     [Conditional( "UNITY_EDITOR" )]
     [AttributeUsage( AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true )]
-    public class TimeSpanAttribute : PropertyAttribute
+    public class TimeSpanAttribute : ExtendedPropertyAttribute
     {
         public TimeUnitFlags unitFlags;
         public TimeRange timeRange;

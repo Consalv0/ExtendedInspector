@@ -186,7 +186,7 @@ namespace ExtendedInspector.Editor
         protected abstract void GetVisibilityStatus( out bool enabled, out bool hidden );
     }
 
-    public class NewfangledFieldGroup : InspectorElement
+    public class FieldGroup : InspectorElement
     {
         protected SortedList<PropertyOrderInfo, InspectorElement> m_Elements = new( new PropertyOrderComparer() );
         protected Foldout m_Foldout;
@@ -204,14 +204,14 @@ namespace ExtendedInspector.Editor
             }
         }
 
-        public void AddElement( InspectorElement newfangledElement )
+        public void AddElement( InspectorElement inspectorElement )
         {
             foreach ( var element in m_Elements )
             {
                 m_Container.Remove( element.Value.VisualElement );
             }
 
-            m_Elements.Add( newfangledElement.OrderInfo, newfangledElement );
+            m_Elements.Add( inspectorElement.OrderInfo, inspectorElement );
 
             foreach ( var element in m_Elements )
             {
@@ -219,13 +219,13 @@ namespace ExtendedInspector.Editor
             }
         }
 
-        public void RemoveElement( InspectorElement newfangledElement )
+        public void RemoveElement( InspectorElement inspectorElement )
         {
-            m_Elements.Remove( newfangledElement.OrderInfo );
-            m_Container.Remove( newfangledElement.VisualElement );
+            m_Elements.Remove( inspectorElement.OrderInfo );
+            m_Container.Remove( inspectorElement.VisualElement );
         }
 
-        public NewfangledFieldGroup( int id, string name, int order, int metadataToken, bool expanded, System.Func<object> owner, long tickDelay, bool forceDisabled )
+        public FieldGroup( int id, string name, int order, int metadataToken, bool expanded, System.Func<object> owner, long tickDelay, bool forceDisabled )
             : base( order, metadataToken, owner, tickDelay, forceDisabled )
         {
             m_Id = id;
@@ -272,14 +272,14 @@ namespace ExtendedInspector.Editor
         }
     }
 
-    public class NewfangledMemberField : InspectorElement
+    public class MemberField : InspectorElement
     {
         protected MemberInfo m_MemberInfo;
         protected System.Type m_MemberType;
-        protected IEnumerable<PropertyAttribute> m_PropertyAttributes;
+        protected IEnumerable<ExtendedPropertyAttribute> m_PropertyAttributes;
         protected VisibleIfState m_VisibleIfState;
 
-        public NewfangledMemberField( MemberInfo memberInfo, int order, int metadataToken, System.Type memberType,
+        public MemberField( MemberInfo memberInfo, int order, int metadataToken, System.Type memberType,
             VisualElement inputField, System.Func<object> owner, long tickDelay, bool forceDisabled )
             : base( order, metadataToken, owner, tickDelay, forceDisabled )
         {
@@ -302,9 +302,9 @@ namespace ExtendedInspector.Editor
             }
 
             if ( m_PropertyAttributes == null )
-                m_PropertyAttributes = m_MemberInfo.GetCustomAttributes<PropertyAttribute>();
+                m_PropertyAttributes = m_MemberInfo.GetCustomAttributes<ExtendedPropertyAttribute>();
 
-            foreach ( PropertyAttribute propertyAttribute in m_PropertyAttributes )
+            foreach ( ExtendedPropertyAttribute propertyAttribute in m_PropertyAttributes )
             {
                 if ( enabled == true )
                 {
