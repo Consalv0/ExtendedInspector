@@ -149,7 +149,7 @@ namespace ExtendedInspector.Editor
             m_Editor = UnityEditor.Editor.CreateEditor( m_FieldValue );
             if ( m_Editor != null )
             {
-                m_EditorVisualElement = m_Editor.CreateInspectorGUI();
+                m_EditorVisualElement = new UnityEditor.UIElements.InspectorElement( m_Editor );
             }
             else
             {
