@@ -4,14 +4,30 @@ using UnityEditor.UIElements;
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
+using System;
+using System.Reflection;
 
 namespace ExtendedInspector.Editor
 {
+    public static class ToggleButtonGroupStateReader
+    {
+        private static readonly Type TargetType =
+        Type.GetType("UnityEngine.UIElements.ToggleButtonGroupState, UnityEngine.UIElementsModule");
+
+        private static readonly FieldInfo DataField =
+        TargetType.GetField("m_Data", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        public static ulong GetRawData( in ToggleButtonGroupState toggleState )
+        {
+            return (ulong)DataField.GetValue( toggleState );
+        }
+    }
+
     [CustomPropertyDrawer( typeof( TagMaskAttribute ) )]
     public class TagMaskAttributeDrawer : ExtendedPropertyDrawer
     {
-        private ToggleButtonGroup m_MaskField;
-        private TagField m_TagField;
+        private ToggleButtonGroup m_ToggleField;
+        private Mask64Field m_MaskField;
         private bool m_UseButtons;
 
         public override void OnUpdateValue( )
@@ -19,28 +35,13 @@ namespace ExtendedInspector.Editor
             if ( m_UseButtons )
             {
                 ToggleButtonGroupState buttonGroupState = new ToggleButtonGroupState((ulong)GetValue(), UnityEditorInternal.InternalEditorUtility.tags.Length );
-                m_MaskField.value = buttonGroupState;
+                m_ToggleField.value = buttonGroupState;
             }
             else
             {
                 object value = GetValue();
-                if ( value is string tagName )
-                {
-                    m_TagField.value = tagName;
-                }
-                else if ( value is TagHandle handle )
-                {
-                    m_TagField.value = handle.ToString();
-                }
-                else if ( value is int tagIndex )
-                {
-                    string[] tags = UnityEditorInternal.InternalEditorUtility.tags;
-                    if ( tagIndex < 0 || tagIndex >= tags.Length )
-                    {
-                        tagIndex = 0;
-                    }
-                    m_TagField.value = tags[ tagIndex ];
-                }
+                ulong tagMask = (ulong)value;
+                m_MaskField.value = tagMask;
             }
         }
 
@@ -66,36 +67,19 @@ namespace ExtendedInspector.Editor
             switch ( property.propertyType )
             {
                 case SerializedPropertyType.Integer:
-                    int tagIndex;
-                    switch ( property.numericType )
-                    {
-                        case SerializedPropertyNumericType.Int8:
-                        case SerializedPropertyNumericType.Int16:
-                        case SerializedPropertyNumericType.Int32:
-                            tagIndex = property.intValue;
-                            break;
-                        case SerializedPropertyNumericType.UInt8:
-                        case SerializedPropertyNumericType.UInt16:
-                        case SerializedPropertyNumericType.UInt32:
-                            tagIndex = (int)property.uintValue;
-                            break;
-                        case SerializedPropertyNumericType.Int64:
-                            tagIndex = (int)property.longValue;
-                            break;
-                        case SerializedPropertyNumericType.UInt64:
-                            tagIndex = (int)property.ulongValue;
-                            break;
-                        default:
-                            return null;
-                    }
-                    List<string> tags = UnityEditorInternal.InternalEditorUtility.tags.ToList();
-                    if ( tagIndex < 0 || tagIndex >= tags.Count )
-                    {
-                        tagIndex = 0;
-                    }
-                    m_MaskField = new ToggleButtonGroup( property.displayName, new( 1ul << tagIndex, tags.Count ) );
-                    m_MaskField.isMultipleSelection = true;
-                    m_MaskField.allowEmptySelection = true;
+                    string[] tags = UnityEditorInternal.InternalEditorUtility.tags;
+                    m_ToggleField = new ToggleButtonGroup( property.displayName, new( GetTagMaskFromNumericProperty( property ), tags.Length ) );
+                    m_ToggleField.isMultipleSelection = true;
+                    m_ToggleField.allowEmptySelection = true;
+                    m_ToggleField.label = property.displayName;
+                    m_ToggleField.BindProperty( property );
+                    m_ToggleField.TrackPropertyValue( property, ( SerializedProperty property ) => {
+                        m_ToggleField.SetValueWithoutNotify( new ToggleButtonGroupState( GetTagMaskFromNumericProperty( property ), UnityEditorInternal.InternalEditorUtility.tags.Length ) );
+                    } );
+                    m_ToggleField.RegisterValueChangedCallback( ( ChangeEvent<ToggleButtonGroupState> changeEvent ) => {
+                        SetTagMaskFromNumericProperty( property, ToggleButtonGroupStateReader.GetRawData( changeEvent.newValue ) );
+                        property.serializedObject.ApplyModifiedProperties();
+                    } );
                     foreach ( string tag in tags )
                     {
                         Button button = new Button() { text = tag };
@@ -107,63 +91,85 @@ namespace ExtendedInspector.Editor
                         button.style.paddingBottom = 2;
                         button.style.marginTop = 0;
                         button.style.marginBottom = 0;
-                        m_MaskField.Add( button );
+                        m_ToggleField.Add( button );
                     }
-                    m_MaskField.label = property.displayName;
-                    m_MaskField.BindProperty( property );
-                    return m_MaskField;
+                    m_ToggleField.RegisterCallback<GeometryChangedEvent>(
+                        ( _ ) => m_ToggleField.SetValueWithoutNotify( new ToggleButtonGroupState( GetTagMaskFromNumericProperty( property ), UnityEditorInternal.InternalEditorUtility.tags.Length ) )
+                    );
+                    return m_ToggleField;
                 default:
                     return null;
             }
+        }
+
+        public void SetTagMaskFromNumericProperty( SerializedProperty property, ulong value )
+        {
+            switch ( property.numericType )
+            {
+                case SerializedPropertyNumericType.Int8:
+                case SerializedPropertyNumericType.Int16:
+                case SerializedPropertyNumericType.Int32:
+                    property.intValue = (int)value;
+                    break;
+                case SerializedPropertyNumericType.UInt8:
+                case SerializedPropertyNumericType.UInt16:
+                case SerializedPropertyNumericType.UInt32:
+                    property.uintValue = (uint)value;
+                    break;
+                case SerializedPropertyNumericType.Int64:
+                    property.longValue = (long)value;
+                    break;
+                case SerializedPropertyNumericType.UInt64:
+                    property.ulongValue = value;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public ulong GetTagMaskFromNumericProperty( SerializedProperty property )
+        {
+            ulong tagIndex;
+            switch ( property.numericType )
+            {
+                case SerializedPropertyNumericType.Int8:
+                case SerializedPropertyNumericType.Int16:
+                case SerializedPropertyNumericType.Int32:
+                    tagIndex = (ulong)property.intValue;
+                    break;
+                case SerializedPropertyNumericType.UInt8:
+                case SerializedPropertyNumericType.UInt16:
+                case SerializedPropertyNumericType.UInt32:
+                    tagIndex = property.uintValue;
+                    break;
+                case SerializedPropertyNumericType.Int64:
+                    tagIndex = (ulong)property.longValue;
+                    break;
+                case SerializedPropertyNumericType.UInt64:
+                    tagIndex = property.ulongValue;
+                    break;
+                default:
+                    return 0;
+            }
+            return tagIndex;
         }
 
         public VisualElement CreateDropdown( SerializedProperty property )
         {
             switch ( property.propertyType )
             {
-                case SerializedPropertyType.Generic:
-                    if ( property.boxedValue is TagHandle tagHandle )
-                    {
-                        m_TagField = new TagField( property.displayName, tagHandle.ToString() );
-                        m_TagField.BindProperty( property );
-                        return m_TagField;
-                    }
-                    else return null;
                 case SerializedPropertyType.Integer:
-                    uint tagIndex;
-                    switch ( property.numericType )
-                    {
-                        case SerializedPropertyNumericType.Int8:
-                        case SerializedPropertyNumericType.Int16:
-                        case SerializedPropertyNumericType.Int32:
-                            tagIndex = (uint)property.intValue;
-                            break;
-                        case SerializedPropertyNumericType.UInt8:
-                        case SerializedPropertyNumericType.UInt16:
-                        case SerializedPropertyNumericType.UInt32:
-                            tagIndex = property.uintValue;
-                            break;
-                        case SerializedPropertyNumericType.Int64:
-                            tagIndex = (uint)property.longValue;
-                            break;
-                        case SerializedPropertyNumericType.UInt64:
-                            tagIndex = (uint)property.ulongValue;
-                            break;
-                        default:
-                            return null;
-                    }
-                    string[] tags = UnityEditorInternal.InternalEditorUtility.tags;
-                    if ( tagIndex < 0 || tagIndex >= tags.Length )
-                    {
-                        tagIndex = 0;
-                    }
-                    m_TagField = new TagField( property.displayName, tags[ tagIndex ] );
-                    m_TagField.BindProperty( property );
-                    return m_TagField;
-                case SerializedPropertyType.String:
-                    m_TagField = new TagField( property.displayName, property.stringValue );
-                    m_TagField.BindProperty( property );
-                    return m_TagField;
+                    m_MaskField = new Mask64Field( UnityEditorInternal.InternalEditorUtility.tags.ToList(), GetTagMaskFromNumericProperty( property ) );
+                    m_MaskField.label = property.displayName;
+                    m_MaskField.BindProperty( property );
+                    m_MaskField.TrackPropertyValue( property, ( SerializedProperty property ) => {
+                        m_MaskField.SetValueWithoutNotify( GetTagMaskFromNumericProperty( property ) );
+                    } );
+                    m_MaskField.RegisterValueChangedCallback( ( ChangeEvent<ulong> changeEvent ) => {
+                        SetTagMaskFromNumericProperty( property, changeEvent.newValue );
+                        property.serializedObject.ApplyModifiedProperties();
+                    } );
+                    return m_MaskField;
                 default:
                     return null;
             }
