@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,19 @@ namespace ExtendedInspector.Editor
     public static class SerializedObjectUtils
     {
         private static readonly Regex ArrayIndexCapturePattern = new Regex(@"\[(\d+)\]", RegexOptions.Compiled);
+        private static System.Func<PropertyName, string> s_PropertyNameToString = null;
+
+        public static string PropertyNameToString( this PropertyName propertyName )
+        {
+            if ( s_PropertyNameToString == null )
+            {
+                System.Type propertyNameUtilsType = typeof(PropertyName).Assembly.GetType( "UnityEngine.PropertyNameUtils", throwOnError: true );
+                MethodInfo stringFromPropertyName = propertyNameUtilsType.GetMethod( "StringFromPropertyName", BindingFlags.Public | BindingFlags.Static );
+                s_PropertyNameToString = (System.Func<PropertyName, string>)stringFromPropertyName.CreateDelegate( typeof( System.Func<PropertyName, string> ), null );
+            }
+
+            return s_PropertyNameToString.Invoke( propertyName );
+        }
 
         public static FieldInfo GetFieldViaPath( this System.Type type, string path )
         {
@@ -285,6 +299,11 @@ namespace ExtendedInspector.Editor
                 } break;
                 case SerializedPropertyType.String:
                 {
+                    if ( value is PropertyName propertyName )
+                    {
+                        property.stringValue = PropertyNameToString( propertyName );
+                        break;
+                    }
                     property.stringValue = value as string;
                 } break;
                 case SerializedPropertyType.Color:

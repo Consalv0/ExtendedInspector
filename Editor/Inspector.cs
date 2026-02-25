@@ -1131,6 +1131,14 @@ namespace ExtendedInspector.Editor
                 field.AddToClassList( BaseField<Void>.alignedFieldUssClassName );
                 return field;
             }
+            else if ( fieldType == typeof( PropertyName ) )
+            {
+                TextField field = new( fieldName ) { value = (fieldValue == null ? string.Empty : SerializedObjectUtils.PropertyNameToString( (PropertyName)fieldValue )), showMixedValue = showMixedValue };
+                field.RegisterValueChangedCallback( ( changeEvent ) => { try { set?.Invoke( new PropertyName( changeEvent.newValue ) ); } catch { } } );
+                field.schedule.Execute( ( so ) => { field.SetValueWithoutNotify( SerializedObjectUtils.PropertyNameToString( GetFieldValueSafe<PropertyName>() ) ); } ).Every( tickDelay );
+                field.AddToClassList( BaseField<Void>.alignedFieldUssClassName );
+                return field;
+            }
             else if ( fieldType.IsSubclassOf( typeof( UnityEngine.Object ) ) || fieldType == typeof( UnityEngine.Object ) )
             {
                 ObjectField field = new( fieldName ) { value = (UnityEngine.Object)fieldValue, showMixedValue = showMixedValue };
@@ -1229,7 +1237,7 @@ namespace ExtendedInspector.Editor
                type.IsEnum || type == typeof( string ) || type == typeof( int ) || type == typeof( uint ) || type == typeof( long ) || type == typeof( ulong ) || type == typeof( float ) || type == typeof( double ) || type == typeof( bool )
             || type == typeof( Vector2 ) || type == typeof( Vector2Int ) || type == typeof( Vector3 ) || type == typeof( Vector3Int ) || type == typeof( Vector4 ) || type == typeof( Color )
             || type == typeof( LayerMask ) || type == typeof( Rect ) || type == typeof( RectInt ) || type == typeof( Bounds ) || type == typeof( BoundsInt ) || type == typeof( Gradient ) || type == typeof( AnimationCurve )
-            || (type.IsSubclassOf( typeof( UnityEngine.Object ) ) || type == typeof( UnityEngine.Object ));
+            || (type.IsSubclassOf( typeof( UnityEngine.Object ) ) || type == typeof( UnityEngine.Object )) || type == typeof( PropertyName );
 
         /// <summary>
         /// Finds a field inside a serialized object
