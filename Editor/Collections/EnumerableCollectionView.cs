@@ -44,22 +44,12 @@ namespace ExtendedInspector.Editor
             m_Foldout = new() { text = label };
             m_Foldout.bindingPath = m_Property?.propertyPath ?? string.Empty;
             VisualElement container = m_Foldout.contentContainer;
-            container.style.marginLeft = 5;
-            container.style.paddingLeft = 4;
-            container.style.borderLeftWidth = 1;
-            container.style.borderLeftColor = Color.gray3;
             container.Add( m_ScrollView = new( ScrollViewMode.Vertical ) );
-
-            m_Foldout.AddToClassList( BaseListView.foldoutHeaderUssClassName );
-            m_Foldout.style.marginLeft = -12;
 
             m_Label = m_Foldout.Q<Label>();
             m_Label.parent.Add( m_SizeLabel = new() );
 
-            m_SizeLabel.style.fontSize = 10;
-            m_SizeLabel.style.paddingTop = 5;
-            m_SizeLabel.style.marginRight = 5F;
-            m_ScrollView.style.maxHeight = 400;
+            ApplyCollectionStyleToFoldout( m_Foldout, m_SizeLabel, m_ScrollView );
 
             UpdateCollectionCache();
             return m_Foldout;

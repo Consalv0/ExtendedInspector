@@ -78,22 +78,12 @@ namespace ExtendedInspector.Editor
             m_Foldout = new() { text = label };
             m_Foldout.bindingPath = m_Property?.propertyPath ?? string.Empty;
             VisualElement container = m_Foldout.contentContainer;
-            container.style.marginLeft = 5;
-            container.style.paddingLeft = 4;
-            container.style.borderLeftWidth = 1;
-            container.style.borderLeftColor = Color.gray3;
             container.Add( m_ScrollView = new( ScrollViewMode.Vertical ) );
-
-            m_Foldout.AddToClassList( BaseListView.foldoutHeaderUssClassName );
-            m_Foldout.style.marginLeft = -12;
 
             m_Label = m_Foldout.Q<Label>();
             m_Label.parent.Add( m_SizeLabel = new() );
 
-            m_SizeLabel.style.fontSize = 10;
-            m_SizeLabel.style.paddingTop = 5;
-            m_SizeLabel.style.marginRight = 5F;
-            m_ScrollView.style.maxHeight = 400;
+            ApplyCollectionStyleToFoldout( m_Foldout, m_SizeLabel, m_ScrollView );
             m_Label.parent.Add( m_OptionsButton = IconButton( EditorGUIUtility.IconContent( "d_ToolsToggle" ).image, ToggleTemplateOptions ) );
             m_Label.parent.Add( m_AddButton = IconButton( EditorGUIUtility.IconContent( "d_Toolbar Plus" ).image, AddElement ) );
             m_Label.parent.Add( m_RemoveButton = IconButton( EditorGUIUtility.IconContent( "d_Toolbar Minus" ).image, RemoveElement ) );
@@ -105,6 +95,7 @@ namespace ExtendedInspector.Editor
             System.Action<object> setValue = ( value ) => m_ValueTemplate = value;
 
             m_Template = new();
+            m_Template.style.marginRight = 6;
             m_Template.style.backgroundColor = new Color( 1, 1, 1, 0.05F );
             m_Template.style.borderBottomWidth = 1;
             m_Template.style.borderLeftWidth = 1;
@@ -232,6 +223,14 @@ namespace ExtendedInspector.Editor
             }
 
             UpdateCollectionSize();
+        }
+
+        protected static void RemoveDuplicateArrayElementMenuAction( VisualElement field )
+        {
+            field.RegisterCallback<ContextualMenuPopulateEvent>( evt =>
+            {
+                evt.menu.MenuItems().RemoveAll( item => item is DropdownMenuAction action && action.name == "Duplicate Array Element" );
+            } );
         }
 
         protected object CreateInstance( System.Type type )
@@ -471,6 +470,8 @@ namespace ExtendedInspector.Editor
                 VisualElement valueField = m_Inspector.CreateFieldForType(
                     m_ValueType, m_ValueType, string.Empty, getValue, setValue, m_PropertyValues?.GetArrayElementAtIndex( index ), Inspector.AreNonSerializedMemberValuesDifferent( new[] { getValue } ), m_TickDelay
                 );
+                RemoveDuplicateArrayElementMenuAction( keyField );
+                RemoveDuplicateArrayElementMenuAction( valueField );
                 VisualElement elementKey = new();
                 elementKey.name = "dictionary-view__key";
                 elementKey.AddToClassList( "unity-inspector-main-container" );

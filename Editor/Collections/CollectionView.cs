@@ -74,6 +74,30 @@ namespace ExtendedInspector.Editor
             }
         }
 
+        public static void ApplyCollectionStyleToFoldout( Foldout foldout, Label label, ScrollView scrollView )
+        {
+            foldout.AddToClassList( BaseListView.foldoutHeaderUssClassName );
+            foldout.style.marginRight = -1;
+            foldout.style.marginTop = new StyleLength( -1.2F );
+            foldout.style.marginBottom = new StyleLength( -1.2F );
+
+            Toggle toggle = foldout.Q<Toggle>();
+            toggle.style.minHeight = EditorGUIUtility.singleLineHeight;
+            toggle.style.alignItems = Align.Center;
+
+            VisualElement container = foldout.contentContainer;
+            container.style.marginLeft = -7;
+            container.style.marginRight = -6;
+            container.style.paddingLeft = 4;
+            container.style.paddingBottom = 5;
+            container.style.borderLeftWidth = 1;
+            container.style.borderLeftColor = Color.gray3;
+
+            label.style.fontSize = 10;
+            label.style.marginRight = 5F;
+            scrollView.style.maxHeight = 400;
+        }
+
         protected abstract VisualElement CreateCollectionView( string label );
 
         protected abstract void UpdateCollectionCache( );
@@ -111,6 +135,7 @@ namespace ExtendedInspector.Editor
         {
             Button button = new( onClick );
             button.style.paddingLeft = 4F;
+            button.style.height = EditorGUIUtility.singleLineHeight;
 
             if ( iconTexture is Texture2D texture )
             {

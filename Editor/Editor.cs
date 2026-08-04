@@ -52,7 +52,7 @@ namespace ExtendedInspector.Editor
         [MainToolbarElement( "Extended Inspector", defaultDockPosition = MainToolbarDockPosition.Left )]
         public static MainToolbarElement MenuEnableToggle( )
         {
-            MainToolbarToggle toggle = new MainToolbarToggle( new MainToolbarContent( "", EditorGUIUtility.IconContent("d_Profiler.UIDetails").image as Texture2D, "Toggle Extended Inspector" ),
+            MainToolbarToggle toggle = new MainToolbarToggle( new MainToolbarContent( "", EditorGUIUtility.IconContent("d_UnityEditor.InspectorWindow").image as Texture2D, "Toggle Extended Inspector" ),
                 EditorPrefs.GetBool( "ExtendedInspector.Editor.enabled", true ), ( value ) => { EditorPrefs.SetBool( "ExtendedInspector.Editor.enabled", value ); } );
 
             return toggle;

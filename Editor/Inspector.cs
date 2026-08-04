@@ -1201,7 +1201,23 @@ namespace ExtendedInspector.Editor
                     VisualElement visualElement = inspector.CreateInspectorGUI();
                     AddDecorators( memberInfo, ref visualElement );
                     container.Add( visualElement );
-                    if ( serializedProperty != null ) serializedObjectFoldout.bindingPath = serializedProperty.propertyPath;
+                    if ( serializedProperty != null )
+                    {
+                        serializedObjectFoldout.bindingPath = serializedProperty.propertyPath;
+
+                        // serializedProperty.displayName reflects a "name" field on the element type live;
+                        // fieldName only captured it once, so swap the stale portion back out on tick.
+                        string lastDisplayName = serializedProperty.displayName;
+                        serializedObjectFoldout.schedule.Execute( ( ) =>
+                        {
+                            string currentDisplayName = serializedProperty.displayName;
+                            if ( currentDisplayName != lastDisplayName )
+                            {
+                                serializedObjectFoldout.text = serializedObjectFoldout.text.Replace( lastDisplayName, currentDisplayName );
+                                lastDisplayName = currentDisplayName;
+                            }
+                        } ).Every( tickDelay );
+                    }
 
                     return serializedObjectFoldout;
                 }

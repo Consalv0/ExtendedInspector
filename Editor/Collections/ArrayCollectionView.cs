@@ -51,22 +51,12 @@ namespace ExtendedInspector.Editor
             m_Foldout = new() { text = label };
             m_Foldout.bindingPath = m_Property?.propertyPath ?? string.Empty;
             VisualElement container = m_Foldout.contentContainer;
-            container.style.marginLeft = 5;
-            container.style.paddingLeft = 4;
-            container.style.borderLeftWidth = 1;
-            container.style.borderLeftColor = Color.gray3;
             container.Add( m_ScrollView = new( ScrollViewMode.Vertical ) );
-
-            m_Foldout.AddToClassList( BaseListView.foldoutHeaderUssClassName );
-            m_Foldout.style.marginLeft = -12;
 
             m_Label = m_Foldout.Q<Label>();
             m_Label.parent.Add( m_SizeLabel = new() );
 
-            m_SizeLabel.style.fontSize = 10;
-            m_SizeLabel.style.paddingTop = 5;
-            m_SizeLabel.style.marginRight = 5F;
-            m_ScrollView.style.maxHeight = 400;
+            ApplyCollectionStyleToFoldout( m_Foldout, m_SizeLabel, m_ScrollView );
             m_Label.parent.Add( m_AddButton = IconButton( EditorGUIUtility.IconContent( "d_Toolbar Plus" ).image, AddElement ) );
             m_Label.parent.Add( m_RemoveButton = IconButton( EditorGUIUtility.IconContent( "d_Toolbar Minus" ).image, RemoveElement ) );
 
@@ -134,6 +124,7 @@ namespace ExtendedInspector.Editor
             }
 
             UpdateCollectionSize();
+            RebuildElements();
         }
 
         protected void RemoveElement( )
@@ -177,6 +168,7 @@ namespace ExtendedInspector.Editor
             }
 
             UpdateCollectionSize();
+            RebuildElements();
         }
 
         protected void AddElement( )
@@ -223,56 +215,75 @@ namespace ExtendedInspector.Editor
             m_SizeLabel.text = $"{m_Size} element{(m_Size != 1 ? 's' : null)}";
             for ( int i = oldSize; i < m_Size; i++ )
             {
-                int index = i; // capture local copy
-                System.Func<object> get;
-                System.Action<object> set;
-                if ( m_Property == null )
-                {
-                    get = ( ) => m_Value.GetValue( index );
-                    if ( m_Set == null ) set = null;
-                    else
-                    {
-                        set = ( value ) => m_Value.SetValue( value, index );
-                    }
-                }
+                CreateElementRow( i );
+            }
+        }
+
+        protected VisualElement CreateElementRow( int index )
+        {
+            System.Func<object> get;
+            System.Action<object> set;
+            if ( m_Property == null )
+            {
+                get = ( ) => m_Value.GetValue( index );
+                if ( m_Set == null ) set = null;
                 else
                 {
-                    get = () => m_Get.Invoke() is Array array ? array.GetValue( index ) : null;
-                    set = ( object value ) => { m_Value = m_Get.Invoke() as Array; m_Value?.SetValue( value, index ); m_Set?.Invoke( m_Value ); };
+                    set = ( value ) => m_Value.SetValue( value, index );
                 }
+            }
+            else
+            {
+                get = () => m_Get.Invoke() is Array array ? array.GetValue( index ) : null;
+                set = ( object value ) => { m_Value = m_Get.Invoke() as Array; m_Value?.SetValue( value, index ); m_Set?.Invoke( m_Value ); };
+            }
 
-                VisualElement element = new();
-                element.name = "list-view__item";
-                SerializedProperty serializedElement = m_Property?.GetArrayElementAtIndex( i );
-                VisualElement field = m_Inspector.CreateFieldForType(
-                    m_ElementType, m_ElementType, $"[{index}] {serializedElement?.displayName}", get, set, serializedElement,
-                    Inspector.AreNonSerializedMemberValuesDifferent( new[] { get } ), m_TickDelay
-                );
-                element.Add( field );
-                element.style.paddingLeft = 12;
-                element.style.paddingRight = 10;
-                element.RegisterCallback<PointerDownEvent>( evt => EvalAddRemoveFocusedElement(), TrickleDown.TrickleDown );
-                if ( m_Property == null ) element.AddManipulator( new ContextualMenuManipulator( null ) );
-                element.RegisterCallback<ContextualMenuPopulateEvent>( ( evt ) =>
-                {
-                    evt.menu.AppendAction( "Move Element Up",
-                        ( menuAction ) => { MoveElementUp( (int)menuAction.userData ); },
-                        static ( DropdownMenuAction menuAction ) =>
-                        {
-                            return ((int)menuAction.userData) == 0 ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
-                        },
-                        index );
-                    evt.menu.AppendAction( "Move Element Down",
-                        ( menuAction ) => { MoveElementDown( (((int, int))menuAction.userData).Item1 ); },
-                        static ( DropdownMenuAction menuAction ) =>
-                        {
-                            return (((int, int))menuAction.userData).Item1 + 1 >= (((int, int))menuAction.userData).Item2 ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
-                        },
-                        (index, m_Size) );
-                } );
+            VisualElement element = new();
+            element.name = "list-view__item";
+            SerializedProperty serializedElement = m_Property?.GetArrayElementAtIndex( index );
+            VisualElement field = m_Inspector.CreateFieldForType(
+                m_ElementType, m_ElementType, $"[{index}] {serializedElement?.displayName}", get, set, serializedElement,
+                Inspector.AreNonSerializedMemberValuesDifferent( new[] { get } ), m_TickDelay
+            );
+            element.Add( field );
+            element.style.paddingLeft = 12;
+            element.style.paddingRight = 10;
+            element.RegisterCallback<PointerDownEvent>( evt => EvalAddRemoveFocusedElement(), TrickleDown.TrickleDown );
+            if ( m_Property == null ) element.AddManipulator( new ContextualMenuManipulator( null ) );
+            element.RegisterCallback<ContextualMenuPopulateEvent>( ( evt ) =>
+            {
+                evt.menu.AppendAction( "Move Element Up",
+                    ( menuAction ) => { MoveElementUp( (int)menuAction.userData ); },
+                    static ( DropdownMenuAction menuAction ) =>
+                    {
+                        return ((int)menuAction.userData) == 0 ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
+                    },
+                    index );
+                evt.menu.AppendAction( "Move Element Down",
+                    ( menuAction ) => { MoveElementDown( (((int, int))menuAction.userData).Item1 ); },
+                    static ( DropdownMenuAction menuAction ) =>
+                    {
+                        return (((int, int))menuAction.userData).Item1 + 1 >= (((int, int))menuAction.userData).Item2 ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal;
+                    },
+                    (index, m_Size) );
+            } );
 
-                m_Elements.Add( element );
-                m_ScrollView.Add( element );
+            m_Elements.Add( element );
+            m_ScrollView.Add( element );
+            return element;
+        }
+
+        protected void RebuildElements( )
+        {
+            foreach ( var element in m_Elements )
+            {
+                m_ScrollView.Remove( element );
+            }
+            m_Elements.Clear();
+
+            for ( int i = 0; i < m_Size; i++ )
+            {
+                CreateElementRow( i );
             }
         }
 
@@ -289,6 +300,8 @@ namespace ExtendedInspector.Editor
                 m_Value.SetValue( m_Value.GetValue( index + 1 ), index );
                 m_Value.SetValue( temp, index + 1 );
             }
+
+            RebuildElements();
         }
 
         protected void MoveElementUp( int index )
@@ -304,6 +317,8 @@ namespace ExtendedInspector.Editor
                 m_Value.SetValue( m_Value.GetValue( index - 1 ), index );
                 m_Value.SetValue( temp, index - 1 );
             }
+
+            RebuildElements();
         }
 
         protected override void UpdateCollectionCache( )
